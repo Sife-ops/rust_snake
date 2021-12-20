@@ -24,92 +24,43 @@ enum Command {
 
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq)]
 struct Point {
-    x: u32,
-    y: u32,
+    x: u16,
+    y: u16,
 }
 
 impl Point {
-    fn new(x: u32, y: u32) -> Self {
+    fn new(x: u16, y: u16) -> Self {
         Self { x, y }
     }
 
-    fn transform(&self, direction: Direction, times: u32) -> Self {
-        let times = times as i32;
-        let transformation = match direction {
-            Direction::Up => (0, -times),
-            Direction::Down => (0, times),
-            Direction::Left => (-times, 0),
-            Direction::Right => (times, 0),
-        };
-        Self::new(
-            Self::transform_value(self.x, transformation.0),
-            Self::transform_value(self.y, transformation.1),
-        )
-    }
-
-    fn transform_value(value: u32, by: i32) -> u32 {
-        if by.is_negative() && by.abs() as u32 > value {
-            panic!("negative position");
-        } else {
-            return (value as i32 + by) as u32;
+    fn transform(&self, direction: Direction) -> Self {
+        match direction {
+            Direction::Up => Self::new(self.x, self.y - 1),
+            Direction::Down => Self::new(self.x, self.y + 1),
+            Direction::Left => Self::new(self.x - 1, self.y),
+            Direction::Right => Self::new(self.x + 1, self.y),
         }
     }
 }
 
 struct Snake {
-    body: Vec<Point>,
-    direction: Direction,
-    eating: bool,
+    // todo: vector
+    body: Point,
+    facing: Direction,
+    // todo: eating
+    // eating: bool,
 }
 
 impl Snake {
-    // todo
-    // fn new(start: Point, length: u32, direction: Direction) -> {
+    // todo: random facing direction
+    // fn new(start: Point, length: u16, direction: Direction) -> {
     // }
 
     fn new() -> Self {
         Snake {
-            body: vec![Point::new(3, 3), Point::new(2, 3)],
-            direction: Direction::Right,
-            eating: false,
+            body: Point::new(3,3),
+            facing: Direction::Right,
         }
-    }
-
-    fn head(&self) -> Point {
-        self.body.first().unwrap().clone()
-    }
-
-    fn body(&self) -> Vec<Point> {
-        self.body.clone()
-    }
-
-    fn direction(&self) -> Direction {
-        self.direction.clone()
-    }
-
-    fn contains(&self, point: &Point) -> bool {
-        self.body.contains(point)
-    }
-
-    fn advance(&mut self) {
-        self.body.insert(
-            //;
-            0,
-            self.body.first().unwrap().transform(self.direction, 1),
-        );
-        if self.eating {
-            self.eating = false;
-        } else {
-            self.body.remove(self.body.len() - 1);
-        }
-    }
-
-    fn face(&mut self, direction: Direction) {
-        self.direction = direction;
-    }
-
-    fn eat(&mut self) {
-        self.eating = true;
     }
 }
 
@@ -118,10 +69,61 @@ use std::time::{Duration, Instant};
 use crossterm::terminal::size;
 use rand::Rng;
 
-const MAX_INTERVAL: u32 = 700;
-const MIN_INTERVAL: u32 = 200;
-const MAX_SPEED: u32 = 20;
+struct Game {
+    stdout: Stdout,
+    term_size: (u16,u16),
+    width: u16,
+    height: u16,
+    snake: Snake
+}
+
+impl Game {
+    fn new(stdout: Stdout, width: u16, height: u16) -> Self {
+        Self {
+            stdout,
+            term_size: size().unwrap(),
+            width,
+            height,
+            snake: Snake::new(),
+        }
+    }
+
+}
 
 fn main() {
     println!("Hello, world!");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_point_transform_up() {
+        let p = Point::new(3,3);
+        let p = p.transform(Direction::Up);
+        assert_eq!(p, Point::new(3,2));
+    }
+
+    #[test]
+    fn test_point_transform_down() {
+        let p = Point::new(3,3);
+        let p = p.transform(Direction::Down);
+        assert_eq!(p, Point::new(3,4));
+    }
+
+    #[test]
+    fn test_point_transform_left() {
+        let p = Point::new(3,3);
+        let p = p.transform(Direction::Left);
+        assert_eq!(p, Point::new(2,3));
+    }
+
+    #[test]
+    fn test_point_transform_right() {
+        let p = Point::new(3,3);
+        let p = p.transform(Direction::Right);
+        assert_eq!(p, Point::new(4,3));
+    }
+
 }
