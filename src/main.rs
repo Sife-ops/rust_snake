@@ -1,3 +1,29 @@
+use crossterm::event::{
+    poll,
+    read,
+    //;
+    Event,
+    KeyCode,
+    KeyEvent,
+};
+
+use crossterm::terminal::{
+    disable_raw_mode,
+    enable_raw_mode,
+    size,
+    //;
+    Clear,
+    ClearType,
+    SetSize,
+};
+
+use crossterm::cursor::{Hide, MoveTo, Show};
+use crossterm::style::{Color, Print, ResetColor, SetForegroundColor};
+use crossterm::ExecutableCommand;
+use rand::Rng;
+use std::io::{stdout, Stdout};
+use std::time::{Duration, Instant};
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 enum Direction {
     Up,
@@ -54,11 +80,7 @@ struct Snake {
 impl Snake {
     fn new() -> Self {
         Snake {
-            body: vec![
-                Point::new(3, 3),
-                Point::new(2, 3),
-                Point::new(1, 3),
-            ],
+            body: vec![Point::new(3, 3), Point::new(2, 3), Point::new(1, 3)],
             facing: Direction::Right,
         }
     }
@@ -73,11 +95,6 @@ impl Snake {
         self.body.remove(self.body.len() - 1);
     }
 }
-
-use crossterm::terminal::size;
-use rand::Rng;
-use std::io::{Stdout, stdout};
-use std::time::{Duration, Instant};
 
 struct Game {
     stdout: Stdout,
@@ -106,13 +123,57 @@ impl Game {
         return false;
     }
 
+    fn start_ui(&mut self) {
+        enable_raw_mode().unwrap();
+        self.stdout
+            .execute(SetSize(self.width + 3, self.height + 3))
+            .unwrap()
+            .execute(Clear(ClearType::All))
+            .unwrap()
+            .execute(Hide)
+            .unwrap();
+    }
+
+    fn draw_background(&mut self) {
+        // self.stdout.execute(ResetColor).unwrap();
+        for y in 0..self.height {
+            for x in 0..self.width {
+                self.stdout
+                    .execute(MoveTo(x, y))
+                    .unwrap()
+                    .execute(Print("0"))
+                    .unwrap();
+            }
+        }
+    }
+
+    fn draw_snake(&mut self) {
+        self.stdout.execute(SetForegroundColor(Color::Green)).unwrap();
+        let b = self.snake.body.clone();
+        println!("{:?}", b);
+        for (i, p) in b.iter().enumerate() {
+            self.stdout
+                .execute(MoveTo(p.x, p.y))
+                .unwrap()
+                .execute(Print("8"))
+                .unwrap();
+        }
+    }
+
+    fn render(&mut self) {
+        self.draw_background();
+        self.draw_snake();
+    }
+
     fn run(&mut self) {
+        self.start_ui();
+        self.render();
         let mut game_over = false;
         while !game_over {
             let interval = Duration::from_millis(1000);
             let now = Instant::now();
 
-            println!("{:?}", self.snake.body);
+            // println!("{:?}", self.snake.body);
 
             while now.elapsed() < interval {
                 //;
@@ -123,6 +184,7 @@ impl Game {
                 println!("you died");
             } else {
                 self.snake.advance();
+                self.render();
             }
         }
     }
@@ -203,5 +265,4 @@ mod tests {
     //     s.advance();
     //     assert_eq!(s.body, p);
     // }
-
 }
