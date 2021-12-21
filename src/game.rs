@@ -145,7 +145,7 @@ impl Game {
         self.render();
         let mut game_over = false;
         while !game_over {
-            let interval = Duration::from_millis(1000);
+            let interval = Duration::from_millis(500);
             let now = Instant::now();
             let facing = self.snake.facing;
 
@@ -165,10 +165,12 @@ impl Game {
                 }
             }
 
+            self.snake.advance();
+
             if self.hit_wall() || self.snake.hit_self() {
                 println!("you died");
                 game_over = true;
-                continue;
+                // continue;
             } 
 
             if self.snake.head() == self.food.unwrap() {
@@ -176,7 +178,6 @@ impl Game {
                 self.spawn_food();
             }
 
-            self.snake.advance();
             self.render();
         }
         self.stop_ui();
