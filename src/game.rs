@@ -10,12 +10,12 @@ use std::io::Stdout;
 use std::time::{Duration, Instant};
 
 pub struct Game {
-    pub stdout: Stdout,
-    pub term_size: (u16, u16),
-    pub width: u16,
-    pub height: u16,
-    pub snake: Snake,
-    pub food: Option<Point>,
+    stdout: Stdout,
+    term_size: (u16, u16),
+    width: u16,
+    height: u16,
+    snake: Snake,
+    food: Option<Point>,
 }
 
 impl Game {
@@ -43,7 +43,7 @@ impl Game {
         }
     }
 
-    pub fn hit_wall(&self) -> bool {
+    fn hit_wall(&self) -> bool {
         let p = self.snake.head();
         if p.x < 1 || p.x >= self.width - 1 || p.y < 1 || p.y >= self.height - 1 {
             return true;
@@ -51,7 +51,7 @@ impl Game {
         return false;
     }
 
-    pub fn start_ui(&mut self) {
+    fn start_ui(&mut self) {
         enable_raw_mode().unwrap();
         self.stdout
             .execute(SetSize(self.width + 3, self.height + 3))
@@ -62,7 +62,7 @@ impl Game {
             .unwrap();
     }
 
-    pub fn stop_ui(&mut self) {
+    fn stop_ui(&mut self) {
         let (cols, rows) = self.term_size;
         self.stdout
             .execute(SetSize(cols, rows))
@@ -76,7 +76,7 @@ impl Game {
         disable_raw_mode().unwrap();
     }
 
-    pub fn draw_background(&mut self) {
+    fn draw_background(&mut self) {
         // self.stdout.execute(ResetColor).unwrap();
         for y in 0..self.height {
             for x in 0..self.width {
@@ -89,7 +89,7 @@ impl Game {
         }
     }
 
-    pub fn draw_snake(&mut self) {
+    fn draw_snake(&mut self) {
         // self.stdout.execute(SetForegroundColor(Color::Green)).unwrap();
         let b = self.snake.body.clone();
         // for (i, p) in b.iter().enumerate() {
@@ -102,7 +102,7 @@ impl Game {
         }
     }
 
-    pub fn draw_food(&mut self) {
+    fn draw_food(&mut self) {
         let p = self.food.clone().unwrap();
         self.stdout
             .execute(MoveTo(p.x, p.y))
@@ -111,13 +111,13 @@ impl Game {
             .unwrap();
     }
 
-    pub fn render(&mut self) {
+    fn render(&mut self) {
         self.draw_background();
         self.draw_food();
         self.draw_snake();
     }
 
-    pub fn await_event(&self, d: Duration) -> Option<KeyEvent> {
+    fn await_event(&self, d: Duration) -> Option<KeyEvent> {
         if poll(d).ok()? {
             let e = read().ok()?;
             if let Event::Key(k) = e {
@@ -127,7 +127,7 @@ impl Game {
         None
     }
 
-    pub fn command(&self, d: Duration) -> Option<Command> {
+    fn command(&self, d: Duration) -> Option<Command> {
         let k = self.await_event(d)?;
         match k.code {
             KeyCode::Char('q') => Some(Command::Quit),
@@ -145,19 +145,20 @@ impl Game {
         self.render();
         let mut game_over = false;
         while !game_over {
-            let interval = Duration::from_millis(500);
+            let interval = Duration::from_millis(1000);
             let now = Instant::now();
+            let facing = self.snake.facing;
 
             while now.elapsed() < interval {
-                if let Some(c) = self.command(interval - now.elapsed()) {
-                    match c {
+                if let Some(command) = self.command(interval - now.elapsed()) {
+                    match command {
                         Command::Quit => {
                             game_over = true;
                             break;
                         }
-                        Command::Turn(d) => {
-                            if d != self.snake.facing.opposite() {
-                                self.snake.facing = d;
+                        Command::Turn(direction) => {
+                            if direction != facing.opposite() {
+                                self.snake.facing = direction;
                             }
                         }
                     }

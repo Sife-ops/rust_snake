@@ -1,10 +1,8 @@
 use rust_snake::{Point, Direction};
 
 pub struct Snake {
-    // todo: vector
     pub body: Vec<Point>,
     pub facing: Direction,
-    // todo: eating
     pub eating: bool,
 }
 
