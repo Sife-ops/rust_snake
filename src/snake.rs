@@ -1,4 +1,4 @@
-use rust_snake::{Point, Direction};
+use rust_snake::{Direction, Point};
 
 pub struct Snake {
     pub body: Vec<Point>,
@@ -7,13 +7,15 @@ pub struct Snake {
 }
 
 impl Snake {
-    pub fn new() -> Snake {
+    pub fn new(w: u16, h: u16) -> Snake {
+        let x = w / 2;
+        let y = h / 2;
         Snake {
             body: vec![
                 //;
-                Point::new(3, 3),
-                Point::new(2, 3),
-                Point::new(1, 3),
+                Point::new(x, y),
+                Point::new(x - 1, y),
+                Point::new(x - 2, y),
             ],
             facing: Direction::Right,
             eating: false,
@@ -39,4 +41,3 @@ impl Snake {
         self.body.remove(self.body.len() - 1);
     }
 }
-

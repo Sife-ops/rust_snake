@@ -11,7 +11,6 @@ use std::time::{Duration, Instant};
 
 pub struct Game {
     stdout: Stdout,
-    term_size: (u16, u16),
     width: u16,
     height: u16,
     snake: Snake,
@@ -19,13 +18,13 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new(stdout: Stdout, width: u16, height: u16) -> Game {
+    pub fn new(stdout: Stdout) -> Game {
+        let (x,y) = size().unwrap();
         Game {
             stdout,
-            term_size: size().unwrap(),
-            width,
-            height,
-            snake: Snake::new(),
+            width: x,
+            height: y,
+            snake: Snake::new(x, y),
             food: None,
         }
     }
@@ -63,9 +62,8 @@ impl Game {
     }
 
     fn stop_ui(&mut self) {
-        let (cols, rows) = self.term_size;
         self.stdout
-            .execute(SetSize(cols, rows))
+            .execute(SetSize(self.width, self.height))
             .unwrap()
             .execute(Clear(ClearType::All))
             .unwrap()
@@ -171,7 +169,7 @@ impl Game {
                 println!("you died");
                 game_over = true;
                 // continue;
-            } 
+            }
 
             if self.snake.head() == self.food.unwrap() {
                 self.snake.eating = true;
