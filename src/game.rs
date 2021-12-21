@@ -164,7 +164,11 @@ impl Game {
     }
 
     pub fn run(&mut self) {
-        for _ in 0..6 {
+        let items = match (self.width * self.height) / 200 {
+            x @ 1.. => x,
+            _ => 1,
+        };
+        for _ in 0..items {
             self.new_food();
         }
 
