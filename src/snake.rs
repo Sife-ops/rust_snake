@@ -7,7 +7,7 @@ pub struct Snake {
 }
 
 impl Snake {
-    pub fn new() -> Self {
+    pub fn new() -> Snake {
         Snake {
             body: vec![
                 //;

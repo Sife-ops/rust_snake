@@ -29,11 +29,11 @@ pub struct Point {
 }
 
 impl Point {
-    pub fn new(x: u16, y: u16) -> Self {
-        Self { x, y }
+    pub fn new(x: u16, y: u16) -> Point {
+        Point { x, y }
     }
 
-    pub fn transform(&self, direction: Direction) -> Self {
+    pub fn transform(&self, direction: Direction) -> Point {
         match direction {
             Direction::Up => Self::new(self.x, self.y - 1),
             Direction::Down => Self::new(self.x, self.y + 1),

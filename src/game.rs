@@ -19,8 +19,8 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new(stdout: Stdout, width: u16, height: u16) -> Self {
-        Self {
+    pub fn new(stdout: Stdout, width: u16, height: u16) -> Game {
+        Game {
             stdout,
             term_size: size().unwrap(),
             width,
