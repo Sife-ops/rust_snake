@@ -32,8 +32,8 @@ impl Game {
 
     fn spawn_food(&mut self) {
         loop {
-            let x = rand::thread_rng().gen_range(0..self.width);
-            let y = rand::thread_rng().gen_range(0..self.height);
+            let x = rand::thread_rng().gen_range(1..self.width - 1);
+            let y = rand::thread_rng().gen_range(1..self.height - 1);
             let p = Point::new(x, y);
             if self.snake.body.contains(&p) {
                 continue;
@@ -113,8 +113,8 @@ impl Game {
 
     pub fn render(&mut self) {
         self.draw_background();
-        self.draw_snake();
         self.draw_food();
+        self.draw_snake();
     }
 
     pub fn await_event(&self, d: Duration) -> Option<KeyEvent> {
@@ -145,7 +145,7 @@ impl Game {
         self.render();
         let mut game_over = false;
         while !game_over {
-            let interval = Duration::from_millis(1000);
+            let interval = Duration::from_millis(500);
             let now = Instant::now();
 
             while now.elapsed() < interval {
@@ -164,13 +164,19 @@ impl Game {
                 }
             }
 
-            if self.hit_wall() {
+            if self.hit_wall() || self.snake.hit_self() {
                 println!("you died");
                 game_over = true;
-            } else {
-                self.snake.advance();
-                self.render();
+                continue;
+            } 
+
+            if self.snake.head() == self.food.unwrap() {
+                self.snake.eating = true;
+                self.spawn_food();
             }
+
+            self.snake.advance();
+            self.render();
         }
         self.stop_ui();
     }

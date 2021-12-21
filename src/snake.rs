@@ -5,7 +5,7 @@ pub struct Snake {
     pub body: Vec<Point>,
     pub facing: Direction,
     // todo: eating
-    // eating: bool,
+    pub eating: bool,
 }
 
 impl Snake {
@@ -18,6 +18,7 @@ impl Snake {
                 Point::new(1, 3),
             ],
             facing: Direction::Right,
+            eating: false,
         }
     }
 
@@ -25,9 +26,18 @@ impl Snake {
         self.body.first().unwrap().clone()
     }
 
+    pub fn hit_self(&self) -> bool {
+        let b = &self.body[1..];
+        b.contains(&self.head())
+    }
+
     pub fn advance(&mut self) {
         let p = self.head().transform(self.facing);
         self.body.insert(0, p);
+        if self.eating {
+            self.eating = false;
+            return;
+        }
         self.body.remove(self.body.len() - 1);
     }
 }
