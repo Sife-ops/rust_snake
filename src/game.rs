@@ -1,11 +1,11 @@
 use crate::snake::Snake;
-use crossterm::ExecutableCommand;
 use crossterm::cursor::{Hide, MoveTo, Show};
 use crossterm::event::{poll, read, Event, KeyCode, KeyEvent};
 use crossterm::style::{Print, ResetColor};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode, size, Clear, ClearType, SetSize};
+use crossterm::ExecutableCommand;
 use rand::Rng;
-use rust_snake::{Command, Direction};
+use rust_snake::{Command, Direction, Point};
 use std::io::Stdout;
 use std::time::{Duration, Instant};
 
@@ -15,6 +15,7 @@ pub struct Game {
     pub width: u16,
     pub height: u16,
     pub snake: Snake,
+    pub food: Option<Point>,
 }
 
 impl Game {
@@ -25,6 +26,20 @@ impl Game {
             width,
             height,
             snake: Snake::new(),
+            food: None,
+        }
+    }
+
+    fn spawn_food(&mut self) {
+        loop {
+            let x = rand::thread_rng().gen_range(0..self.width);
+            let y = rand::thread_rng().gen_range(0..self.height);
+            let p = Point::new(x, y);
+            if self.snake.body.contains(&p) {
+                continue;
+            }
+            self.food = Some(Point::new(x, y));
+            break;
         }
     }
 
@@ -68,7 +83,7 @@ impl Game {
                 self.stdout
                     .execute(MoveTo(x, y))
                     .unwrap()
-                    .execute(Print("0"))
+                    .execute(Print("."))
                     .unwrap();
             }
         }
@@ -82,14 +97,24 @@ impl Game {
             self.stdout
                 .execute(MoveTo(p.x, p.y))
                 .unwrap()
-                .execute(Print("8"))
+                .execute(Print("@"))
                 .unwrap();
         }
+    }
+
+    pub fn draw_food(&mut self) {
+        let p = self.food.clone().unwrap();
+        self.stdout
+            .execute(MoveTo(p.x, p.y))
+            .unwrap()
+            .execute(Print("*"))
+            .unwrap();
     }
 
     pub fn render(&mut self) {
         self.draw_background();
         self.draw_snake();
+        self.draw_food();
     }
 
     pub fn await_event(&self, d: Duration) -> Option<KeyEvent> {
@@ -115,6 +140,7 @@ impl Game {
     }
 
     pub fn run(&mut self) {
+        self.spawn_food();
         self.start_ui();
         self.render();
         let mut game_over = false;
