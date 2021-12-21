@@ -14,31 +14,30 @@ pub struct Game {
     width: u16,
     height: u16,
     snake: Snake,
-    food: Option<Point>,
+    food: Vec<Point>,
 }
 
 impl Game {
     pub fn new(stdout: Stdout) -> Game {
-        let (x,y) = size().unwrap();
+        let (x, y) = size().unwrap();
         Game {
             stdout,
             width: x,
             height: y,
             snake: Snake::new(x, y),
-            food: None,
+            food: vec![],
         }
     }
 
-    fn spawn_food(&mut self) {
+    fn new_food(&mut self) {
         loop {
             let x = rand::thread_rng().gen_range(1..self.width - 1);
             let y = rand::thread_rng().gen_range(1..self.height - 1);
             let p = Point::new(x, y);
-            if self.snake.body.contains(&p) {
-                continue;
+            if !self.snake.body.contains(&p) && !self.food.contains(&p) {
+                self.food.push(p);
+                break;
             }
-            self.food = Some(Point::new(x, y));
-            break;
         }
     }
 
@@ -48,6 +47,10 @@ impl Game {
             return true;
         }
         return false;
+    }
+
+    fn hit_food(&self) -> Option<usize> {
+        self.food.iter().position(|&e| e == self.snake.head())
     }
 
     fn start_ui(&mut self) {
@@ -75,7 +78,6 @@ impl Game {
     }
 
     fn draw_background(&mut self) {
-        // self.stdout.execute(ResetColor).unwrap();
         for y in 0..self.height {
             for x in 0..self.width {
                 self.stdout
@@ -88,9 +90,7 @@ impl Game {
     }
 
     fn draw_snake(&mut self) {
-        // self.stdout.execute(SetForegroundColor(Color::Green)).unwrap();
         let b = self.snake.body.clone();
-        // for (i, p) in b.iter().enumerate() {
         for p in b.iter() {
             self.stdout
                 .execute(MoveTo(p.x, p.y))
@@ -101,12 +101,13 @@ impl Game {
     }
 
     fn draw_food(&mut self) {
-        let p = self.food.clone().unwrap();
-        self.stdout
-            .execute(MoveTo(p.x, p.y))
-            .unwrap()
-            .execute(Print("*"))
-            .unwrap();
+        for f in self.food.clone() {
+            self.stdout
+                .execute(MoveTo(f.x, f.y))
+                .unwrap()
+                .execute(Print("*"))
+                .unwrap();
+        }
     }
 
     fn render(&mut self) {
@@ -138,10 +139,14 @@ impl Game {
     }
 
     pub fn run(&mut self) {
-        self.spawn_food();
+        for _ in 0..6 {
+            self.new_food();
+        }
+
         self.start_ui();
         self.render();
         let mut game_over = false;
+
         while !game_over {
             let interval = Duration::from_millis(500);
             let now = Instant::now();
@@ -168,12 +173,13 @@ impl Game {
             if self.hit_wall() || self.snake.hit_self() {
                 println!("you died");
                 game_over = true;
-                // continue;
+                continue;
             }
 
-            if self.snake.head() == self.food.unwrap() {
+            if let Some(i) = self.hit_food() {
                 self.snake.eating = true;
-                self.spawn_food();
+                self.food.remove(i);
+                self.new_food();
             }
 
             self.render();
