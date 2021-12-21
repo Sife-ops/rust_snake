@@ -7,12 +7,12 @@ pub enum Direction {
 }
 
 impl Direction {
-    pub fn opposite(&self) -> Self {
+    pub fn opposite(&self) -> Direction {
         match self {
-            Self::Up => Self::Down,
-            Self::Down => Self::Up,
-            Self::Left => Self::Right,
-            Self::Right => Self::Left,
+            Direction::Up => Direction::Down,
+            Direction::Down => Direction::Up,
+            Direction::Left => Direction::Right,
+            Direction::Right => Direction::Left,
         }
     }
 }
@@ -35,10 +35,10 @@ impl Point {
 
     pub fn transform(&self, direction: Direction) -> Point {
         match direction {
-            Direction::Up => Self::new(self.x, self.y - 1),
-            Direction::Down => Self::new(self.x, self.y + 1),
-            Direction::Left => Self::new(self.x - 1, self.y),
-            Direction::Right => Self::new(self.x + 1, self.y),
+            Direction::Up => Point::new(self.x, self.y - 1),
+            Direction::Down => Point::new(self.x, self.y + 1),
+            Direction::Left => Point::new(self.x - 1, self.y),
+            Direction::Right => Point::new(self.x + 1, self.y),
         }
     }
 }
