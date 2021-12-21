@@ -83,9 +83,33 @@ impl Game {
                 self.stdout
                     .execute(MoveTo(x, y))
                     .unwrap()
-                    .execute(Print("."))
+                    .execute(Print(" "))
                     .unwrap();
             }
+        }
+    }
+
+    fn draw_border(&mut self) {
+        for y in 0..self.height {
+            if y == 0 || y == self.height - 1 {
+                for x in 0..self.width {
+                    self.stdout
+                        .execute(MoveTo(x, y))
+                        .unwrap()
+                        .execute(Print("#"))
+                        .unwrap();
+                }
+                continue;
+            }
+            self.stdout
+                .execute(MoveTo(0, y))
+                .unwrap()
+                .execute(Print("#"))
+                .unwrap()
+                .execute(MoveTo(self.width, y))
+                .unwrap()
+                .execute(Print("#"))
+                .unwrap();
         }
     }
 
@@ -112,6 +136,7 @@ impl Game {
 
     fn render(&mut self) {
         self.draw_background();
+        self.draw_border();
         self.draw_food();
         self.draw_snake();
     }
@@ -148,7 +173,7 @@ impl Game {
         let mut game_over = false;
 
         while !game_over {
-            let interval = Duration::from_millis(500);
+            let interval = Duration::from_millis(200);
             let now = Instant::now();
             let facing = self.snake.facing;
 
